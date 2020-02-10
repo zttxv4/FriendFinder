@@ -1,37 +1,48 @@
 var friends = require("../data/friends");
 
 module.exports = function(app) {
-    app.get("/api/friends", function (req, res){
-        res.json(friends);
-        console.log(friends)
-    });
 
-    app.post("/api/friends", function(req, res){
-        console.log(req.body.scores);
+  app.get("/api/friends", function(req, res) {
+    res.json(friends);
+  });
 
-        var user = req.body;
+  app.post("/api/friends", function(req, res) {
 
-        for(var i = 0; i < user.scores.length; i++) {
-            user.scores[i] = parseInt(user.scores[i]);
-        }
+    var bestMatch = {
+      name: "",
+      photo: "",
+      friendDifference: Infinity
+    };
 
-        var friendIndex = 0;
-        var minDifference = 40;
+ 
+    var userData = req.body;
+    var userScores = userData.scores;
 
-        for(var i = 0; friends.length; i++){
-            var totalDifference = 0;
-            for(var j = 0; j < friends[i].scores.length; j++){
-                var difference = Math.abs(user.scores[j] - friends[i].scores[j]);
-                totalDifference += difference;
-            }
+    var totalDifference;
 
-            if(totalDifference < minDifference){
-                friendIndex = i;
-                minDifference = totalDifference;
-            }
-        }
-        friends.push(user);
+    for (var i = 0; i < friends.length; i++) {
+      var currentFriend = friends[i];
+      totalDifference = 0;
 
-        res.json(friends[friendIndex])
-    });
-}
+      console.log(currentFriend.name);
+
+      for (var j = 0; j < currentFriend.scores.length; j++) {
+        var currentFriendScore = currentFriend.scores[j];
+        var currentUserScore = userScores[j];
+
+        totalDifference += Math.abs(parseInt(currentUserScore) - parseInt(currentFriendScore));
+      }
+
+      if (totalDifference <= bestMatch.friendDifference) {
+        
+        bestMatch.name = currentFriend.name;
+        bestMatch.photo = currentFriend.photo;
+        bestMatch.friendDifference = totalDifference;
+      }
+    }
+
+    friends.push(userData);
+
+    res.json(bestMatch);
+  });
+};
